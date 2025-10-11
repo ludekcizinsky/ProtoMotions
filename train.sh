@@ -12,7 +12,7 @@ ROBOT="${ROBOT:-smpl}"
 TERRAIN="${TERRAIN:-flat}"
 
 # Which to run: 1, 2, 3, both (1+2), or all (1+2+3)
-STAGE="${STAGE:-3}"
+STAGE="${STAGE:-1}"
 
 # --- Stage 1 (Full-body tracker) ---
 TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-initial_demo}"
