@@ -80,7 +80,11 @@ def main(override_config: OmegaConf):
     fabric.launch()
 
     if simulator == "isaaclab":
-        app_launcher = AppLauncher({"headless": config.headless})
+        app_launcher_flags = {
+            "headless": False, # keep false otherwise we get omni.ui failure
+            "kit_args": "--no-window --enable omni.kit.livestream.webrtc",
+        }
+        app_launcher = AppLauncher(app_launcher_flags)
         simulation_app = app_launcher.app
         env = instantiate(
             config.env, device=fabric.device, simulation_app=simulation_app
