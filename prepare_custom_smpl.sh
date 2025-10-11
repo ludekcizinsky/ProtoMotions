@@ -13,8 +13,8 @@ set -euo pipefail
 PYTHON_BIN=${PYTHON_BIN:-python}
 
 
-SEQUENCE_NAME="football_high_res"
-PREPROCESS_DIR="/scratch/izar/cizinsky/multiply-output/preprocessing/data/football_high_res"
+SEQUENCE_NAME="initial_demo"
+PREPROCESS_DIR="/scratch/izar/cizinsky/multiply-output/preprocessing/data/$SEQUENCE_NAME"
 WORK_ROOT="/scratch/izar/cizinsky/zurihack/data/"
 
 FPS=30
