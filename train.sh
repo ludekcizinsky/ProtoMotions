@@ -8,27 +8,27 @@ OUTPUT_DIR="${OUTPUT_DIR:-/workspace/isaaclab/ProtoMotions/results}"
 
 MOTION_FILE="${MOTION_FILE:-/workspace/isaaclab/ProtoMotions/data/zurihack/data/motion_states/initial_demo.pt}"
 SIMULATOR="${SIMULATOR:-isaaclab}"
-ROBOT="${ROBOT:-smpl}"
+ROBOT="${ROBOT:-h1}"
 TERRAIN="${TERRAIN:-flat}"
 
 # Which to run: 1, 2, 3, both (1+2), or all (1+2+3)
-STAGE="${STAGE:-2}"
+STAGE="${STAGE:-1}"
 
 # Liftable box toggle (0/1, false/true)
-ENABLE_LIFTABLE_BOX="${ENABLE_LIFTABLE_BOX:-1}"
+ENABLE_LIFTABLE_BOX="${ENABLE_LIFTABLE_BOX:-0}"
 case "${ENABLE_LIFTABLE_BOX,,}" in
   1|true|yes|on) ENABLE_LIFTABLE_BOX_OVERRIDE=true ;;
   *) ENABLE_LIFTABLE_BOX_OVERRIDE=false ;;
 esac
 
 # --- Stage 1 (Full-body tracker) ---
-TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-initial_demo}"
+TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-initial_demo_h1}"
 TRACKER_NUM_ENVS="${TRACKER_NUM_ENVS:-512}"
 TRACKER_NUM_STEPS="${TRACKER_NUM_STEPS:-32}"
 TRACKER_BATCH_SIZE="$((TRACKER_NUM_ENVS * TRACKER_NUM_STEPS))"
 
 # --- Stage 2 (MaskedMimic) ---
-EXPERIMENT_NAME="${EXPERIMENT_NAME:-inital_demo_mimic}"
+EXPERIMENT_NAME="${EXPERIMENT_NAME:-inital_demo_h1_mimic}"
 MM_NUM_ENVS="${MM_NUM_ENVS:-256}"
 MM_NUM_STEPS="${MM_NUM_STEPS:-32}"
 MM_BATCH_SIZE="$((MM_NUM_ENVS * MM_NUM_STEPS))"
