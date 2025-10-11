@@ -20,4 +20,6 @@ fi
 
 echo "Pulling latest changes in ${DATASET_REPO_ROOT}..."
 git -C "${DATASET_REPO_ROOT}" pull --ff-only
+echo "Fetching large files via Git LFS..."
+git -C "${DATASET_REPO_ROOT}" lfs pull
 echo "Done."
