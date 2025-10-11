@@ -79,7 +79,7 @@ def main(config: OmegaConf):
  
 
         app_launcher_flags = {
-            #"headless": True, # keep false otherwise we get omni.ui failure
+            "headless": False, # keep false otherwise we get omni.ui failure
             "kit_args": "--no-window --enable omni.kit.livestream.webrtc",
         }
 
