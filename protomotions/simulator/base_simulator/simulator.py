@@ -42,7 +42,7 @@ class Simulator(ABC):
         else:
             self._num_objects_per_scene = 0
         self.terrain = terrain
-        self.headless: bool = self.config.headless
+        self.headless: bool = False
         self.num_envs: int = self.config.num_envs
 
         self.control_type: ControlType = self.robot_config.control.control_type
@@ -672,6 +672,7 @@ class Simulator(ABC):
                     clip = ImageSequenceClip(images, fps=30)
                     clip.write_videofile(
                         f"{self._curr_user_recording_name}.mp4",
+                        fps=30,
                         codec='libx264',
                         audio=False,
                         threads=32,

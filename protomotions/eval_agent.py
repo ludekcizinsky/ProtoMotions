@@ -92,12 +92,19 @@ def main(override_config: OmegaConf):
     else:
         env = instantiate(config.env, device=fabric.device)
 
+    if simulator == "isaaclab" and not config.headless:
+        env.simulator._toggle_video_record()  # optional: start recording here
+
     agent: PPO = instantiate(config.agent, env=env, fabric=fabric)
     agent.setup()
     agent.load(config.checkpoint)
 
     agent.evaluate_policy()
 
+    if simulator == "isaaclab" and not config.headless:
+        env.simulator._toggle_video_record()  # stop
+        print("Recording stopping:", env.simulator._user_is_recording)
+        env.simulator.render() 
 
 if __name__ == "__main__":
     main()

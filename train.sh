@@ -12,7 +12,7 @@ ROBOT="${ROBOT:-smpl}"
 TERRAIN="${TERRAIN:-flat}"
 
 # Which to run: 1, 2, 3, both (1+2), or all (1+2+3)
-STAGE="${STAGE:-1}"
+STAGE="${STAGE:-2}"
 
 # --- Stage 1 (Full-body tracker) ---
 TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-initial_demo}"
@@ -21,7 +21,7 @@ TRACKER_NUM_STEPS="${TRACKER_NUM_STEPS:-32}"
 TRACKER_BATCH_SIZE="$((TRACKER_NUM_ENVS * TRACKER_NUM_STEPS))"
 
 # --- Stage 2 (MaskedMimic) ---
-EXPERIMENT_NAME="${EXPERIMENT_NAME:-football}"
+EXPERIMENT_NAME="${EXPERIMENT_NAME:-inital_demo_mimic}"
 MM_NUM_ENVS="${MM_NUM_ENVS:-256}"
 MM_NUM_STEPS="${MM_NUM_STEPS:-32}"
 MM_BATCH_SIZE="$((MM_NUM_ENVS * MM_NUM_STEPS))"
@@ -139,7 +139,10 @@ run_stage_3() {
   HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/eval_agent.py \
     +robot="$ROBOT" \
     +simulator="$EVAL_SIMULATOR" \
-    +checkpoint="$EVAL_CHECKPOINT"
+    +checkpoint="$EVAL_CHECKPOINT" \
+    +headless=False \
+    +env.config.headless=False \
+    +agent.config.max_eval_steps=1000 
     #+opt="$EVAL_OPT" \
 }
 

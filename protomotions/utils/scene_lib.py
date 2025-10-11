@@ -539,7 +539,24 @@ if __name__ == "__main__":
             fix_base_link=True
         )
     )
-    scene1 = Scene(id=1, objects=[obj1, obj2])
+
+    lift_box = SceneObject(
+    object_path="assets/props/lift_box.urdf",   # use your USD/URDF path
+    translation=(1.0, 0.0, 0.0),                # placeholder; place it near the robot at reset
+    rotation=(0.0, 0.0, 0.0, 1.0),
+    options=ObjectOptions(
+        fix_base_link=False,   # <-- IMPORTANT: dynamic (movable/liftable)
+        density=50.0,         # or set mass in the asset file
+        linear_damping=0.05,
+        angular_damping=0.1,
+        vhacd_enabled=False
+        )
+    )
+
+
+
+
+    scene1 = Scene(id=1, objects=[obj1, obj2, lift_box])
 
     obj3 = SceneObject(
         object_path="chair.urdf",
@@ -559,7 +576,7 @@ if __name__ == "__main__":
             fix_base_link=True
         )
     )
-    scene2 = Scene(id=2, objects=[obj3, obj4])
+    scene2 = Scene(id=2, objects=[obj3, obj4, copy.deepcopy(lift_box)])
 
     scenes = [scene1, scene2]
 
