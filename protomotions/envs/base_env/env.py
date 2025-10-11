@@ -22,6 +22,8 @@ from protomotions.envs.base_env.components.motion_manager import MotionManager
 from protomotions.utils.motion_lib import MotionLib
 from protomotions.utils.scene_lib import SceneLib
 
+
+
 class BaseEnv:
     class StateInit(Enum):
         Default = 0
@@ -366,6 +368,12 @@ class BaseEnv:
             rigid_body_vel=rigid_body_vel,
             rigid_body_ang_vel=rigid_body_ang_vel,
         )
+        if hasattr(self.simulator, "_object") and self.simulator._object:
+            box_offset = torch.tensor([0.5, 0.0, 0.15], device=self.device)
+            box_state = torch.zeros((len(env_ids), 7), device=self.device)
+            box_state[:, :3] = root_pos + box_offset
+            box_state[:, 3] = 1.0  # wxyz quaternion
+            self.simulator._object[0].write_root_state_to_sim(box_state, env_ids)
 
         return new_states
 
@@ -523,23 +531,20 @@ class BaseEnv:
             device=self.device,
         )
 
-        #self.scene_lib: SceneLib = None
+        self.scene_lib = None
+        from isaaclab import sim as sim_utils
+        from isaaclab.assets import RigidObjectCfg
+        from protomotions.simulator.isaaclab.utils.scene import SceneCfg
+
         self.liftable_box = RigidObjectCfg(
-    prim_path="/World/envs/env_.*/LiftableBox",
-    spawn=sim_utils.CuboidCfg(
-        size=(0.2, 0.2, 0.2),
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
-        mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
-    ),
-    init_state=RigidObjectCfg.InitialStateCfg(pos=(0.5, 0.0, 0.15)),
-)
-        
-        # Create scene with the box
-        scene = Scene(objects=[liftable_box])
-        
-        # Create SceneLib and populate it (exactly like working examples)
-        self.scene_lib = SceneLib(num_envs=self.num_envs, device=self.device)
-        self.scene_lib.create_scenes([scene], self.terrain)
+            prim_path="/World/envs/env_.*/LiftableBox",
+            spawn=sim_utils.CuboidCfg(
+                size=(0.2, 0.2, 0.2),
+                rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
+                mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
+            ),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=(0.5, 0.0, 0.15)),
+        )
 
 
     def create_motion_manager(self):
