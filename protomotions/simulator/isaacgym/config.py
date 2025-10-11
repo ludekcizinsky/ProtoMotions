@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dataclasses import dataclass, field
 from protomotions.simulator.base_simulator.config import ConfigBuilder, SimParams, SimulatorConfig
 
 @dataclass
@@ -26,8 +27,8 @@ class IsaacGymFlexParams(ConfigBuilder):
 class IsaacGymSimParams(SimParams):
     """PhysX-specific simulation parameters used by IsaacGym and IsaacLab."""
     substeps: int
-    physx: IsaacGymPhysXParams = IsaacGymPhysXParams()
-    flex: IsaacGymFlexParams = IsaacGymFlexParams()
+    physx: IsaacGymPhysXParams = field(default_factory=IsaacGymPhysXParams)
+    flex: IsaacGymFlexParams = field(default_factory=IsaacGymFlexParams)
 
 
 @dataclass

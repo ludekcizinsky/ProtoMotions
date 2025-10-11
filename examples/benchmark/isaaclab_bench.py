@@ -105,7 +105,7 @@ simulator_config = IsaacLabSimulatorConfig(
     ),
     headless=headless,  # Set to True for headless mode
     robot=robot_config,
-    num_envs=4096,  # Number of parallel environments
+    num_envs=1024,  # Number of parallel environments
     experiment_name="h1_isaaclab_example",
     w_last=False,  # IsaacLab uses wxyz quaternions
 )

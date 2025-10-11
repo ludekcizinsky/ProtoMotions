@@ -11,6 +11,7 @@ training_max_steps: 10000000000
 codebase_version: 1.0  # this is recorded to enable auto-conversion of models between different versions of the codebase
 headless: True
 sync_motion: False
+num_envs: 512
 
 ### Checkpoint logic
 checkpoint: null

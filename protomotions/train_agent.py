@@ -76,8 +76,22 @@ def main(config: OmegaConf):
         seeding(config.seed + rank, torch_deterministic=config.torch_deterministic)
 
     if simulator == "isaaclab":
+        #app_launcher_flags = {
+        #    "headless": True,
+        #    "kit_args": "--no-window --enable omni.kit.livestream.webrtc",
+
+        #}
         app_launcher_flags = {
-            "headless": config.headless,
+            "headless": True,  # or False if you actually want a window
+            "kit_args": "
+                "--enable", "omni.kit.livestream.core",
+                "--enable", "omni.kit.livestream.native",     # for proto=ws
+                "--/app/livestream/enabled=true",
+                "--/app/livestream/proto=ws",
+                "--/app/livestream/port=49100",
+                "--no-window",                                # optional if headless=True
+                "--allow-root"                                # often needed in containers
+            "
         }
         if fabric.world_size > 1:
             # This is needed when running with SLURM.

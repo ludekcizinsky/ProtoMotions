@@ -1,6 +1,6 @@
 # @package _global_
 
-num_envs: 4096
+num_envs: 512
 agent:
   _target_: protomotions.agents.ppo.agent.PPO
   _recursive_: False
