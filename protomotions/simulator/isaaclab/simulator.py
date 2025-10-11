@@ -51,14 +51,14 @@ class IsaacLabSimulator(Simulator):
             visualization_markers (Optional[Dict[str, VisualizationMarker]], optional): Configuration for visualization markers.
         """
 
-        import carb
-        s = carb.settings.get_settings()
-        s.set("/app/livestream/enabled", True)
-        s.set("/app/livestream/proto", "webrtc")   # if drops persist, switch to "ws"
-        s.set("/app/window/width", 1280)
-        s.set("/app/window/height", 720)
-        s.set("/app/window/fpsLimit", 30)
-        s.set("/app/livestream/audio/enabled", False)
+        #import carb
+        #s = carb.settings.get_settings()
+        #s.set("/app/livestream/enabled", True)
+        #s.set("/app/livestream/proto", "webrtc")   # if drops persist, switch to "ws"
+        #s.set("/app/window/width", 1280)
+        #s.set("/app/window/height", 720)
+        #s.set("/app/window/fpsLimit", 20)
+        #s.set("/app/livestream/audio/enabled", False)
 
         
         super().__init__(
