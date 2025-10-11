@@ -523,7 +523,24 @@ class BaseEnv:
             device=self.device,
         )
 
-        self.scene_lib: SceneLib = None
+        #self.scene_lib: SceneLib = None
+        self.liftable_box = RigidObjectCfg(
+    prim_path="/World/envs/env_.*/LiftableBox",
+    spawn=sim_utils.CuboidCfg(
+        size=(0.2, 0.2, 0.2),
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
+        mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
+    ),
+    init_state=RigidObjectCfg.InitialStateCfg(pos=(0.5, 0.0, 0.15)),
+)
+        
+        # Create scene with the box
+        scene = Scene(objects=[liftable_box])
+        
+        # Create SceneLib and populate it (exactly like working examples)
+        self.scene_lib = SceneLib(num_envs=self.num_envs, device=self.device)
+        self.scene_lib.create_scenes([scene], self.terrain)
+
 
     def create_motion_manager(self):
         self.motion_manager = MotionManager(self.config.motion_manager, self)

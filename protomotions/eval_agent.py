@@ -101,10 +101,10 @@ def main(override_config: OmegaConf):
 
     agent.evaluate_policy()
 
-    if simulator == "isaaclab" and not config.headless:
-        env.simulator._toggle_video_record()  # stop
-        print("Recording stopping:", env.simulator._user_is_recording)
-        env.simulator.render() 
+    #if simulator == "isaaclab" and not config.headless:
+    #    env.simulator._toggle_video_record()  # stop
+    #    print("Recording stopping:", env.simulator._user_is_recording)
+    #    env.simulator.render() 
 
 if __name__ == "__main__":
     main()

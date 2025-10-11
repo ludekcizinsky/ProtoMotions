@@ -33,6 +33,7 @@ EVAL_SIMULATOR="${EVAL_SIMULATOR:-isaaclab}"   # eval commonly uses isaacgym
 EVAL_OPT="${EVAL_OPT:-[masked_mimic/tasks/user_control]}"
 EVAL_CHECKPOINT="${EVAL_CHECKPOINT:-${OUTPUT_DIR}/${EXPERIMENT_NAME}/last.ckpt}"
 
+
 # --- Optional Weights & Biases ---
 USE_WANDB="${USE_WANDB:-1}"
 WANDB_PROJECT="${WANDB_PROJECT:-zurihack}"
@@ -144,7 +145,12 @@ run_stage_3() {
     +env.config.headless=False \
     +agent.config.max_eval_steps=1000 
     #+opt="$EVAL_OPT" \
+
+  echo "Encoding evaluation videos from rendered frames (if any)..."
+  "$PYTHON_BIN" create_videos.py || echo "create_videos.py failed (see logs above)."
+
 }
+
 
 case "${STAGE}" in
   1)    run_stage_1 ;;

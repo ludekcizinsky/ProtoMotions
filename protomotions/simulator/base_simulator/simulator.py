@@ -670,6 +670,7 @@ class Simulator(ABC):
                     ])
 
                     clip = ImageSequenceClip(images, fps=30)
+                    clip.fps = 30
                     clip.write_videofile(
                         f"{self._curr_user_recording_name}.mp4",
                         fps=30,

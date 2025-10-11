@@ -117,6 +117,56 @@ class SceneCfg(InteractiveSceneCfg):
         else:
             raise ValueError(f"Unsupported robot type: {robot_type}")
 
+        self.liftable_box = RigidObjectCfg(
+            prim_path="/World/envs/env_.*/LiftableBox",
+            spawn=sim_utils.CuboidCfg(
+                size=(0.3, 0.3, 0.3),  # 30cm cube - larger for visibility
+                rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                    kinematic_enabled=False,  # Allow movement
+                    disable_gravity=False,
+                    linear_damping=0.1,
+                    angular_damping=0.1,
+                    max_linear_velocity=50.0,
+                    max_angular_velocity=50.0,
+                ),
+                mass_props=sim_utils.MassPropertiesCfg(mass=2.0),  # 2kg box
+                collision_props=sim_utils.CollisionPropertiesCfg(
+                    contact_offset=0.005,
+                    rest_offset=0.0,
+                ),
+                visual_material=sim_utils.PreviewSurfaceCfg(
+                    diffuse_color=(1.0, 0.2, 0.2),  # Bright red for visibility
+                    metallic=0.1,
+                    roughness=0.3,
+                    opacity=1.0,
+                ),
+                physics_material=sim_utils.RigidBodyMaterialCfg(
+                    static_friction=0.6,
+                    dynamic_friction=0.5,
+                    restitution=0.1,
+                ),
+            ),
+            init_state=RigidObjectCfg.InitialStateCfg(
+                pos=(0.8, 0.0, 0.5),  # Further out, higher up for visibility
+                rot=(1.0, 0.0, 0.0, 0.0),  # wxyz quaternion
+            ),
+        )
+
+
+
+
+
+        # Add a liftable box to each environment
+#        self.liftable_box = RigidObjectCfg(
+#    prim_path="/World/envs/env_.*/LiftableBox",
+#    spawn=sim_utils.UsdFileCfg(
+#        usd_path="protomotions/data/assets/usd/perturb_box_instanceable.usd",
+#        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
+#        collision_props=sim_utils.CollisionPropertiesCfg(),
+#    ),
+#    init_state=RigidObjectCfg.InitialStateCfg(pos=(0.5, 0.0, 0.85)),
+#)
+
         if scene_cfgs is not None:
             for obj_idx, obj_configs in enumerate(scene_cfgs):
                 spawn_cfg = sim_utils.MultiAssetSpawnerCfg(
