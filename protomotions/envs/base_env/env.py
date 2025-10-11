@@ -35,6 +35,10 @@ class BaseEnv:
         self.config = config
         self.device = device
         self.num_envs = self.config.num_envs
+        #self.record_initial_frames = int(getattr(self.config, "record_initial_frames", 0))
+        #self.record_raw_frames_only = bool(getattr(self.config, "record_raw_frames_only", False))
+        #TODO self._record_frames_remaining = self.record_initial_frames
+        self._initial_recording_active = False
         self.create_terrain_and_scene_lib()
         self.visualization_markers = self.create_visualization_markers()
         
@@ -48,6 +52,7 @@ class BaseEnv:
         SimulatorConfigClass = get_class(self.config.simulator._config_target_)
         simulator_config: SimulatorConfig = SimulatorConfigClass.from_dict(self.config.simulator.config)
         setattr(simulator_config, "enable_liftable_box", self.enable_liftable_box)
+        # TODO setattr(simulator_config, "record_raw_frames_only", self.record_raw_frames_only)
         SimulatorClass = get_class(self.config.simulator._target_)
 
         self.simulator: Simulator = SimulatorClass(
@@ -62,6 +67,9 @@ class BaseEnv:
         self.default_state = self.simulator.get_default_state()
         if self.enable_liftable_box:
             self._update_liftable_box()
+        # TODO if self.record_initial_frames > 0:
+        # TODO    self._start_initial_recording()
+
 
         self.dt = self.simulator.dt
 
@@ -293,6 +301,12 @@ class BaseEnv:
         if self.config.sync_motion:
             self.sync_motion()
 
+        #TODO if self.record_initial_frames > 0 and self._initial_recording_active:
+        #TODO     if self._record_frames_remaining > 0:
+        #TODO         self._record_frames_remaining -= 1
+        #TODO         if self._record_frames_remaining <= 0:
+        #TODO             self._stop_initial_recording()
+
         self.log_dict["terminate_frac"] = self.terminate_buf.float().mean()
 
         self.extras["terminate"] = self.terminate_buf
@@ -411,6 +425,25 @@ class BaseEnv:
         box_state[:, :3] = selected_root_pos + offset
         box_state[:, 3] = 1.0  # wxyz quaternion
         liftable_box_handle.write_root_state_to_sim(box_state, env_ids)
+
+    # TODOdef _start_initial_recording(self) -> None:
+    # TODO    if self._initial_recording_active:
+    # TODO        return
+    # TODO    toggle = getattr(self.simulator, "_toggle_video_record", None)
+    # TODO    if callable(toggle):
+    # TODO        toggle()
+    # TODO        self._initial_recording_active = True
+# TODO
+    # TODOdef _stop_initial_recording(self) -> None:
+    # TODO    if not self._initial_recording_active:
+    # TODO        return
+    # TODO    toggle = getattr(self.simulator, "_toggle_video_record", None)
+    # TODO    if callable(toggle):
+    # TODO        toggle()
+    # TODO    self._initial_recording_active = False
+    # TODO    self._record_frames_remaining = 0
+# TODO
+    # TODO    
     def reset(self, env_ids=None):
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)

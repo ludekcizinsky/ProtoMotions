@@ -660,44 +660,48 @@ class Simulator(ABC):
                     print(f"Started recording to folder {self._curr_user_recording_name}")
                     
                 else:
-                    # Finalize recording and create video
-                    from moviepy.editor import ImageSequenceClip
-                    
                     image_dir = self._curr_user_recording_name
-                    images = sorted([
-                        os.path.join(image_dir, f)
-                        for f in os.listdir(image_dir)
-                        if f.endswith('.png')
-                    ])
+                    if self._raw_frame_capture:
+                        print(f"Recording stopped. Frames saved to {image_dir}")
+                        self._delete_user_viewer_recordings = False
+                        self._recorded_motion = None
+                    else:
+                        from moviepy.editor import ImageSequenceClip
 
-                    clip = ImageSequenceClip(images, fps=30)
-                    clip.fps = 30
-                    clip.write_videofile(
-                        f"{self._curr_user_recording_name}.mp4",
-                        fps=30,
-                        codec='libx264',
-                        audio=False,
-                        threads=32,
-                        preset='veryfast',
-                        ffmpeg_params=[
-                            '-profile:v', 'main',
-                            '-level', '4.0',
-                            '-pix_fmt', 'yuv420p', 
-                            '-movflags', '+faststart',
-                            '-crf', '23',
-                            '-x264-params', 'keyint=60:min-keyint=30'
-                        ]
-                    )
-                    self._delete_user_viewer_recordings = True
-                    print(f"Video saved to {self._curr_user_recording_name}.mp4")
-                    
-                    # Save the recorded motion to a file
-                    global_translation = torch.cat(self._recorded_motion["global_translation"], dim=0)
-                    global_rotation = torch.cat(self._recorded_motion["global_rotation"], dim=0)
-                    with open(f"{self._curr_user_recording_name}.pt", "wb") as f:
-                        torch.save({"global_translation": global_translation, "global_rotation": global_rotation}, f)
-                    self._recorded_motion = None
-                    
+                        images = sorted([
+                            os.path.join(image_dir, f)
+                            for f in os.listdir(image_dir)
+                            if f.endswith('.png')
+                        ])
+
+                        clip = ImageSequenceClip(images, fps=30)
+                        clip.fps = 30
+                        clip.write_videofile(
+                            f"{self._curr_user_recording_name}.mp4",
+                            fps=30,
+                            codec='libx264',
+                            audio=False,
+                            threads=32,
+                            preset='veryfast',
+                            ffmpeg_params=[
+                                '-profile:v', 'main',
+                                '-level', '4.0',
+                                '-pix_fmt', 'yuv420p', 
+                                '-movflags', '+faststart',
+                                '-crf', '23',
+                                '-x264-params', 'keyint=60:min-keyint=30'
+                            ]
+                        )
+                        self._delete_user_viewer_recordings = True
+                        print(f"Video saved to {self._curr_user_recording_name}.mp4")
+
+                        # Save the recorded motion to a file
+                        global_translation = torch.cat(self._recorded_motion["global_translation"], dim=0)
+                        global_rotation = torch.cat(self._recorded_motion["global_rotation"], dim=0)
+                        with open(f"{self._curr_user_recording_name}.pt", "wb") as f:
+                            torch.save({"global_translation": global_translation, "global_rotation": global_rotation}, f)
+                        self._recorded_motion = None
+
                 self._user_recording_state_change = False
 
             # Capture frame if recording
@@ -708,13 +712,13 @@ class Simulator(ABC):
                 )
                 self._write_viewport_to_file(file_name)
                 self._user_recording_frame += 1
-                
-                bodies_state = self.get_bodies_state()
-                self._recorded_motion["global_translation"].append(bodies_state.rigid_body_pos)
-                self._recorded_motion["global_rotation"].append(bodies_state.rigid_body_rot)
+                if not self._raw_frame_capture:
+                    bodies_state = self.get_bodies_state()
+                    self._recorded_motion["global_translation"].append(bodies_state.rigid_body_pos)
+                    self._recorded_motion["global_rotation"].append(bodies_state.rigid_body_rot)
 
             # Clean up temporary files if needed
-            if self._delete_user_viewer_recordings:
+            if self._delete_user_viewer_recordings and not self._raw_frame_capture:
                 images = [
                     img 
                     for img in os.listdir(self._curr_user_recording_name)
