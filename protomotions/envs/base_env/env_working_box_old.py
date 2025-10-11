@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Optional
-import os
 
 import numpy as np
 import torch
@@ -47,7 +46,6 @@ class BaseEnv:
 
         SimulatorConfigClass = get_class(self.config.simulator._config_target_)
         simulator_config: SimulatorConfig = SimulatorConfigClass.from_dict(self.config.simulator.config)
-        setattr(simulator_config, "enable_liftable_box", self.enable_liftable_box)
         SimulatorClass = get_class(self.config.simulator._target_)
 
         self.simulator: Simulator = SimulatorClass(
@@ -60,8 +58,7 @@ class BaseEnv:
         )
         self.simulator.on_environment_ready()
         self.default_state = self.simulator.get_default_state()
-        if self.enable_liftable_box:
-            self._update_liftable_box()
+        self._update_liftable_box()
 
         self.dt = self.simulator.dt
 
@@ -376,9 +373,7 @@ class BaseEnv:
         return new_states
 
     def _update_liftable_box(self, env_ids: Optional[torch.Tensor] = None) -> None:
-        if not getattr(self, "enable_liftable_box", False):
-            return
-        if not hasattr(self, "liftable_box") or self.liftable_box is None:
+        if not hasattr(self, "liftable_box"):
             return
         if not hasattr(self, "simulator"):
             return
@@ -389,8 +384,6 @@ class BaseEnv:
                 return
             liftable_box_handle = sim_objects[0]
         if liftable_box_handle is None:
-            return
-        if getattr(self, "liftable_box_offset", None) is None:
             return
 
         if env_ids is None:
@@ -404,17 +397,12 @@ class BaseEnv:
             return
 
         root_pos = self.simulator._robot.data.root_pos_w
-        env_ids = env_ids.to(root_pos.device)
         selected_root_pos = root_pos.index_select(0, env_ids)
         offset = self.liftable_box_offset.to(root_pos.dtype)
         box_state = torch.zeros((len(env_ids), 13), device=self.device, dtype=root_pos.dtype)
         box_state[:, :3] = selected_root_pos + offset
         box_state[:, 3] = 1.0  # wxyz quaternion
         liftable_box_handle.write_root_state_to_sim(box_state, env_ids)
-    def reset(self, env_ids=None):
-        if env_ids is None:
-            env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)
-
     def reset(self, env_ids=None):
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)
@@ -571,26 +559,20 @@ class BaseEnv:
         )
 
         self.scene_lib = None
-        self.enable_liftable_box = getattr(self.config, "enable_liftable_box", None)
-        if self.enable_liftable_box is None:
-            self.enable_liftable_box = os.getenv("ENABLE_LIFTABLE_BOX", "0").lower() in ("1", "true", "yes", "on")
+        from isaaclab import sim as sim_utils
+        from isaaclab.assets import RigidObjectCfg
+        from protomotions.simulator.isaaclab.utils.scene import SceneCfg
 
-        if self.enable_liftable_box:
-            from isaaclab import sim as sim_utils
-            from isaaclab.assets import RigidObjectCfg
-            self.liftable_box = RigidObjectCfg(
-                prim_path="/World/envs/env_.*/LiftableBox",
-                spawn=sim_utils.CuboidCfg(
-                    size=(0.3, 0.6, 0.25), # this doesnt do anything it is in scene.py line 126
-                    rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
-                    mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
-                ),
-                init_state=RigidObjectCfg.InitialStateCfg(pos=(0, 0.0, 2.3)),
-            )
-            self.liftable_box_offset = torch.tensor([0.0, -0.7, -0.75], device=self.device)
-        else:
-            self.liftable_box = None
-            self.liftable_box_offset = None
+        self.liftable_box = RigidObjectCfg(
+            prim_path="/World/envs/env_.*/LiftableBox",
+            spawn=sim_utils.CuboidCfg(
+                size=(0.2, 0.2, 0.2),
+                rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
+                mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
+            ),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=(0.5, 0.0, 0.15)),
+        )
+        self.liftable_box_offset = torch.tensor([0.5, 0.0, 0.15], device=self.device)
 
 
     def create_motion_manager(self):

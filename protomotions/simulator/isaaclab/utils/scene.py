@@ -1,4 +1,5 @@
 from protomotions.envs.base_env.env_utils.terrains.flat_terrain import FlatTerrain
+import os
 from protomotions.simulator.base_simulator.config import RobotConfig
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
@@ -117,40 +118,47 @@ class SceneCfg(InteractiveSceneCfg):
         else:
             raise ValueError(f"Unsupported robot type: {robot_type}")
 
-        self.liftable_box = RigidObjectCfg(
-            prim_path="/World/envs/env_.*/LiftableBox",
-            spawn=sim_utils.CuboidCfg(
-                size=(0.3, 0.3, 0.3),  # 30cm cube - larger for visibility
-                rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                    kinematic_enabled=False,  # Allow movement
-                    disable_gravity=False,
-                    linear_damping=0.1,
-                    angular_damping=0.1,
-                    max_linear_velocity=50.0,
-                    max_angular_velocity=50.0,
+        enable_liftable_box = getattr(config, "enable_liftable_box", None)
+        if enable_liftable_box is None:
+            enable_liftable_box = os.getenv("ENABLE_LIFTABLE_BOX", "0").lower() in ("1", "true", "yes", "on")
+
+        if enable_liftable_box:
+            self.liftable_box = RigidObjectCfg(
+                prim_path="/World/envs/env_.*/LiftableBox",
+                spawn=sim_utils.CuboidCfg(
+                    size=(0.6, 0.4, 0.4),  # 30cm cube - larger for visibility
+                    rigid_props=sim_utils.RigidBodyPropertiesCfg(
+                        kinematic_enabled=False,  # Allow movement
+                        disable_gravity=False,
+                        linear_damping=0.1,
+                        angular_damping=0.1,
+                        max_linear_velocity=20.0,
+                        max_angular_velocity=20.0,
+                    ),
+                    mass_props=sim_utils.MassPropertiesCfg(mass=0.5),  # 2kg box
+                    collision_props=sim_utils.CollisionPropertiesCfg(
+                        contact_offset=0.003,
+                        rest_offset=0.0,
+                    ),
+                    visual_material=sim_utils.PreviewSurfaceCfg(
+                        diffuse_color=(0.65, 0.47, 0.3),  # Bright red for visibility
+                        metallic=0.0,
+                        roughness=0.65,
+                        opacity=1.0,
+                    ),
+                    physics_material=sim_utils.RigidBodyMaterialCfg(
+                        static_friction=1.8,
+                        dynamic_friction=1.5,
+                        restitution=0.05,
+                    ),
                 ),
-                mass_props=sim_utils.MassPropertiesCfg(mass=2.0),  # 2kg box
-                collision_props=sim_utils.CollisionPropertiesCfg(
-                    contact_offset=0.005,
-                    rest_offset=0.0,
+                init_state=RigidObjectCfg.InitialStateCfg(
+                    pos=(0.8, 0.0, 0.5),  # Further out, higher up for visibility
+                    rot=(1.0, 0.0, 0.0, 0.0),  # wxyz quaternion
                 ),
-                visual_material=sim_utils.PreviewSurfaceCfg(
-                    diffuse_color=(1.0, 0.2, 0.2),  # Bright red for visibility
-                    metallic=0.1,
-                    roughness=0.3,
-                    opacity=1.0,
-                ),
-                physics_material=sim_utils.RigidBodyMaterialCfg(
-                    static_friction=0.6,
-                    dynamic_friction=0.5,
-                    restitution=0.1,
-                ),
-            ),
-            init_state=RigidObjectCfg.InitialStateCfg(
-                pos=(0.8, 0.0, 0.5),  # Further out, higher up for visibility
-                rot=(1.0, 0.0, 0.0, 0.0),  # wxyz quaternion
-            ),
-        )
+            )
+        else:
+            self.liftable_box = None
 
 
 

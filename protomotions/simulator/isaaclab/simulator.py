@@ -97,9 +97,19 @@ class IsaacLabSimulator(Simulator):
         self._robot = self._scene["robot"]
         self._contact_sensor = self._scene["contact_sensor"]
         self._object = []
+        self._liftable_box = None
         if self.scene_lib is not None and self.scene_lib.total_spawned_scenes > 0:
             for obj_idx in range(self.scene_lib.num_objects_per_scene):
                 self._object.append(self._scene[f"object_{obj_idx}"])
+        try:
+            liftable_box_handle = self._scene["liftable_box"]
+            if liftable_box_handle is not None:
+                self._liftable_box = liftable_box_handle
+        except KeyError:
+            pass
+        #if self.scene_lib is not None and self.scene_lib.total_spawned_scenes > 0:
+        #    for obj_idx in range(self.scene_lib.num_objects_per_scene):
+        #        self._object.append(self._scene[f"object_{obj_idx}"])
         if visualization_markers:
             self._build_markers(visualization_markers)
         self._sim.reset()
