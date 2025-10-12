@@ -71,9 +71,10 @@ def main(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     yaml_dir = output_path.parent.resolve()
+    base_dir = source_dir.resolve()
     entries = []
     for idx, file_path in enumerate(motion_files):
-        rel_path = os.path.relpath(file_path, yaml_dir)
+        rel_path = os.path.relpath(file_path, base_dir)
         entries.append(make_entry(idx, rel_path, fps))
 
     descriptor = {"motions": entries}

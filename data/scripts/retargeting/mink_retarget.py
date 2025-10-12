@@ -339,17 +339,11 @@ def create_robot_motion(
     # Convert back to proper kinematic structure
     fk_return_proper = humanoid_batch.convert_to_proper_kinematic(motion_data)
 
-    # Get lowest heights for both original and retargeted motions
-    orig_lowest_heights = torch.from_numpy(orig_global_trans[..., 2].min(axis=1))
+    # Shift each frame so the lowest body point touches the ground (z = 0)
     retarget_lowest_heights = (
         fk_return_proper.global_translation[..., 2].min(dim=-1).values
     )
-
-    # Calculate height adjustment to match original motion's lowest points
-    height_offset = (retarget_lowest_heights - orig_lowest_heights).unsqueeze(-1)
-
-    # Adjust global translations to match original heights
-    fk_return_proper.global_translation[..., 2] -= height_offset
+    fk_return_proper.global_translation[..., 2] -= retarget_lowest_heights.unsqueeze(-1)
 
     curr_motion = {
         k: v.squeeze().detach().cpu() if torch.is_tensor(v) else v
