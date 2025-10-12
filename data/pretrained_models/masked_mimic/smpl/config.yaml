@@ -759,7 +759,7 @@ terrain:
 seed: 0
 training_max_steps: 100000000000
 codebase_version: 1.0
-headless: true
+headless: false
 sync_motion: false
 checkpoint: null
 experiment_name: maskedmimic

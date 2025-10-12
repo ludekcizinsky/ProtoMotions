@@ -633,13 +633,13 @@ terrain:
 seed: 0
 training_max_steps: 100000000000
 codebase_version: 1.0
-headless: true
+headless: false
 sync_motion: false
 checkpoint: null
 experiment_name: motion_tracker_smpl
 base_dir: results
 save_dir: ${base_dir}/${experiment_name}
-num_envs: 4096
+num_envs: 512
 motion_manager:
   fixed_motion_per_env: false
   fixed_motion_id: null

@@ -50,6 +50,17 @@ class IsaacLabSimulator(Simulator):
             scene_lib (Optional[SceneLib], optional): The scene library containing scene and object data.
             visualization_markers (Optional[Dict[str, VisualizationMarker]], optional): Configuration for visualization markers.
         """
+
+        #import carb
+        #s = carb.settings.get_settings()
+        #s.set("/app/livestream/enabled", True)
+        #s.set("/app/livestream/proto", "webrtc")   # if drops persist, switch to "ws"
+        #s.set("/app/window/width", 1280)
+        #s.set("/app/window/height", 720)
+        #s.set("/app/window/fpsLimit", 20)
+        #s.set("/app/livestream/audio/enabled", False)
+
+        
         super().__init__(
             config=config,
             scene_lib=scene_lib,
@@ -79,16 +90,26 @@ class IsaacLabSimulator(Simulator):
         scene_cfg = self._get_scene_cfg()
 
         self._scene = InteractiveScene(scene_cfg)
-        if not self.headless:
-            self._setup_keyboard()
+        #if not self.headless:
+        #    self._setup_keyboard()
         print("[INFO]: Setup complete...")
 
         self._robot = self._scene["robot"]
         self._contact_sensor = self._scene["contact_sensor"]
         self._object = []
+        self._liftable_box = None
         if self.scene_lib is not None and self.scene_lib.total_spawned_scenes > 0:
             for obj_idx in range(self.scene_lib.num_objects_per_scene):
                 self._object.append(self._scene[f"object_{obj_idx}"])
+        try:
+            liftable_box_handle = self._scene["liftable_box"]
+            if liftable_box_handle is not None:
+                self._liftable_box = liftable_box_handle
+        except KeyError:
+            pass
+        #if self.scene_lib is not None and self.scene_lib.total_spawned_scenes > 0:
+        #    for obj_idx in range(self.scene_lib.num_objects_per_scene):
+        #        self._object.append(self._scene[f"object_{obj_idx}"])
         if visualization_markers:
             self._build_markers(visualization_markers)
         self._sim.reset()
@@ -262,9 +283,9 @@ class IsaacLabSimulator(Simulator):
         """
         Set up keyboard callbacks for control using the Se2Keyboard interface.
         """
-        from isaaclab.devices.keyboard.se2_keyboard import Se2Keyboard
+        from isaaclab.devices.keyboard.se2_keyboard import Se2Keyboard, Se2KeyboardCfg
 
-        self.keyboard_interface = Se2Keyboard()
+        self.keyboard_interface = Se2Keyboard(cfg=Se2KeyboardCfg())
         self.keyboard_interface.add_callback("R", self._requested_reset)
         self.keyboard_interface.add_callback("U", self._update_inference_parameters)
         self.keyboard_interface.add_callback("L", self._toggle_video_record)

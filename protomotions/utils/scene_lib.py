@@ -539,6 +539,12 @@ if __name__ == "__main__":
             fix_base_link=True
         )
     )
+
+ 
+
+
+
+
     scene1 = Scene(id=1, objects=[obj1, obj2])
 
     obj3 = SceneObject(

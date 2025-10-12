@@ -101,7 +101,7 @@ simulator_config = GenesisSimulatorConfig(
     ),
     headless=True,  # Set to True for headless mode
     robot=robot_config,
-    num_envs=4096,  # Number of parallel environments
+    num_envs=1024,  # Number of parallel environments
     experiment_name="h1_genesis_example",
     w_last=False,  # Genesis uses wxyz quaternions
 )

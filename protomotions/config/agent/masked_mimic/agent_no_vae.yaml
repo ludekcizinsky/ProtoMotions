@@ -1,6 +1,6 @@
 # @package _global_
 
-num_envs: 4096
+num_envs: 512
 agent:
   _target_: protomotions.agents.masked_mimic.agent_no_vae.MaskedMimicNoVae
   _recursive_: False

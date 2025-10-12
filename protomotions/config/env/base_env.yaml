@@ -12,6 +12,11 @@ env:
     experiment_name: ${experiment_name}
     num_envs: ${num_envs}
     headless: ${headless}
+    enable_liftable_box: False
+    #record_inital_frames: 0
+    #record_raw_frames_only: False
+    # TODO
+
     
     simulator: ${simulator}
 

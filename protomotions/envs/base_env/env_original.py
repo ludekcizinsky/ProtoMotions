@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Optional
-import os
 
 import numpy as np
 import torch
@@ -35,10 +34,6 @@ class BaseEnv:
         self.config = config
         self.device = device
         self.num_envs = self.config.num_envs
-        #self.record_initial_frames = int(getattr(self.config, "record_initial_frames", 0))
-        #self.record_raw_frames_only = bool(getattr(self.config, "record_raw_frames_only", False))
-        #TODO self._record_frames_remaining = self.record_initial_frames
-        self._initial_recording_active = False
         self.create_terrain_and_scene_lib()
         self.visualization_markers = self.create_visualization_markers()
         
@@ -51,8 +46,6 @@ class BaseEnv:
 
         SimulatorConfigClass = get_class(self.config.simulator._config_target_)
         simulator_config: SimulatorConfig = SimulatorConfigClass.from_dict(self.config.simulator.config)
-        setattr(simulator_config, "enable_liftable_box", self.enable_liftable_box)
-        # TODO setattr(simulator_config, "record_raw_frames_only", self.record_raw_frames_only)
         SimulatorClass = get_class(self.config.simulator._target_)
 
         self.simulator: Simulator = SimulatorClass(
@@ -65,11 +58,6 @@ class BaseEnv:
         )
         self.simulator.on_environment_ready()
         self.default_state = self.simulator.get_default_state()
-        if self.enable_liftable_box:
-            self._update_liftable_box()
-        # TODO if self.record_initial_frames > 0:
-        # TODO    self._start_initial_recording()
-
 
         self.dt = self.simulator.dt
 
@@ -301,12 +289,6 @@ class BaseEnv:
         if self.config.sync_motion:
             self.sync_motion()
 
-        #TODO if self.record_initial_frames > 0 and self._initial_recording_active:
-        #TODO     if self._record_frames_remaining > 0:
-        #TODO         self._record_frames_remaining -= 1
-        #TODO         if self._record_frames_remaining <= 0:
-        #TODO             self._stop_initial_recording()
-
         self.log_dict["terminate_frac"] = self.terminate_buf.float().mean()
 
         self.extras["terminate"] = self.terminate_buf
@@ -386,68 +368,39 @@ class BaseEnv:
             rigid_body_vel=rigid_body_vel,
             rigid_body_ang_vel=rigid_body_ang_vel,
         )
+        if hasattr(self.simulator, "_object") and self.simulator._object:
+            box_offset = torch.tensor([0.5, 0.0, 0.15], device=self.device)
+            box_state = torch.zeros((len(env_ids), 7), device=self.device)
+            box_state[:, :3] = root_pos + box_offset
+            box_state[:, 3] = 1.0  # wxyz quaternion
+            self.simulator._object[0].write_root_state_to_sim(box_state, env_ids)
 
         return new_states
 
-    def _update_liftable_box(self, env_ids: Optional[torch.Tensor] = None) -> None:
-        if not getattr(self, "enable_liftable_box", False):
+
+
+
+
+    def _align_liftable_box(self, root_pos: torch.Tensor, env_ids: torch.Tensor) -> None:
+        if not hasattr(self, "liftable_box"):
             return
-        if not hasattr(self, "liftable_box") or self.liftable_box is None:
-            return
-        if not hasattr(self, "simulator"):
-            return
-        liftable_box_handle = getattr(self.simulator, "_liftable_box", None)
-        if liftable_box_handle is None:
-            sim_objects = getattr(self.simulator, "_object", None)
-            if not sim_objects:
-                return
-            liftable_box_handle = sim_objects[0]
-        if liftable_box_handle is None:
-            return
-        if getattr(self, "liftable_box_offset", None) is None:
+        if not hasattr(self.simulator, "_object") or not self.simulator._object:
             return
 
-        if env_ids is None:
-            env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)
-        elif isinstance(env_ids, list):
-            env_ids = torch.tensor(env_ids, device=self.device, dtype=torch.long)
+        if root_pos.shape[0] == len(env_ids):
+            selected_root_pos = root_pos
         else:
-            env_ids = env_ids.to(self.device)
+            selected_root_pos = root_pos.index_select(0, env_ids)
 
-        if env_ids.numel() == 0:
-            return
-
-        root_pos = self.simulator._robot.data.root_pos_w
-        env_ids = env_ids.to(root_pos.device)
-        selected_root_pos = root_pos.index_select(0, env_ids)
-        offset = self.liftable_box_offset.to(root_pos.dtype)
-        box_state = torch.zeros((len(env_ids), 13), device=self.device, dtype=root_pos.dtype)
+        offset = torch.tensor([0.5, 0.0, 0.15], device=self.device, dtype=selected_root_pos.dtype)
+        box_state = torch.zeros((len(env_ids), 7), device=self.device, dtype=selected_root_pos.dtype)
         box_state[:, :3] = selected_root_pos + offset
         box_state[:, 3] = 1.0  # wxyz quaternion
-        liftable_box_handle.write_root_state_to_sim(box_state, env_ids)
+        self.simulator._object[0].write_root_state_to_sim(box_state, env_ids)
 
-    # TODOdef _start_initial_recording(self) -> None:
-    # TODO    if self._initial_recording_active:
-    # TODO        return
-    # TODO    toggle = getattr(self.simulator, "_toggle_video_record", None)
-    # TODO    if callable(toggle):
-    # TODO        toggle()
-    # TODO        self._initial_recording_active = True
-# TODO
-    # TODOdef _stop_initial_recording(self) -> None:
-    # TODO    if not self._initial_recording_active:
-    # TODO        return
-    # TODO    toggle = getattr(self.simulator, "_toggle_video_record", None)
-    # TODO    if callable(toggle):
-    # TODO        toggle()
-    # TODO    self._initial_recording_active = False
-    # TODO    self._record_frames_remaining = 0
-# TODO
-    # TODO    
-    def reset(self, env_ids=None):
-        if env_ids is None:
-            env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)
 
+
+        
     def reset(self, env_ids=None):
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, device=self.device, dtype=torch.long)
@@ -487,7 +440,8 @@ class BaseEnv:
                 )
 
             self.simulator.reset_envs(new_states, env_ids)
-            self._update_liftable_box(env_ids)
+            self._align_liftable_box(new_states.root_pos, env_ids)
+
 
             self.self_obs_cb.reset_envs(
                 env_ids,
@@ -604,26 +558,19 @@ class BaseEnv:
         )
 
         self.scene_lib = None
-        self.enable_liftable_box = getattr(self.config, "enable_liftable_box", None)
-        if self.enable_liftable_box is None:
-            self.enable_liftable_box = os.getenv("ENABLE_LIFTABLE_BOX", "0").lower() in ("1", "true", "yes", "on")
+        from isaaclab import sim as sim_utils
+        from isaaclab.assets import RigidObjectCfg
+        from protomotions.simulator.isaaclab.utils.scene import SceneCfg
 
-        if self.enable_liftable_box:
-            from isaaclab import sim as sim_utils
-            from isaaclab.assets import RigidObjectCfg
-            self.liftable_box = RigidObjectCfg(
-                prim_path="/World/envs/env_.*/LiftableBox",
-                spawn=sim_utils.CuboidCfg(
-                    size=(0.3, 0.6, 0.25), # this doesnt do anything it is in scene.py line 126
-                    rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
-                    mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
-                ),
-                init_state=RigidObjectCfg.InitialStateCfg(pos=(0, 0.0, 2.3)),
-            )
-            self.liftable_box_offset = torch.tensor([0.0, -0.7, -0.75], device=self.device)
-        else:
-            self.liftable_box = None
-            self.liftable_box_offset = None
+        self.liftable_box = RigidObjectCfg(
+            prim_path="/World/envs/env_.*/LiftableBox",
+            spawn=sim_utils.CuboidCfg(
+                size=(0.2, 0.2, 0.2),
+                rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=False),
+                mass_props=sim_utils.MassPropertiesCfg(mass=1.0),
+            ),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=(0.5, 0.0, 0.15)),
+        )
 
 
     def create_motion_manager(self):
@@ -738,6 +685,7 @@ class BaseEnv:
         self.respawn_offset_relative_to_data[~has_scene, :] = 0
 
         self.simulator.reset_envs(ref_state, env_ids)
+
 
         self.progress_buf[env_ids] = 0
         self.reset_buf[env_ids] = 0

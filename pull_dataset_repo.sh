@@ -10,7 +10,7 @@
 set -euo pipefail
 
 # Path to the dataset git repo clone. Update if you keep it elsewhere.
-DATASET_REPO_ROOT="<your_path>"
+DATASET_REPO_ROOT="/workspace/isaaclab/ProtoMotions/data/zurihack"
 
 if [[ ! -d "${DATASET_REPO_ROOT}/.git" ]]; then
   echo "Dataset repository not found at ${DATASET_REPO_ROOT}."

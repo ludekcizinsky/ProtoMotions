@@ -102,7 +102,7 @@ simulator_config = IsaacGymSimulatorConfig(
     ),
     headless=True,  # Set to True for headless mode
     robot=robot_config,
-    num_envs=4096,  # Number of parallel environments
+    num_envs=1024,  # Number of parallel environments
     experiment_name="h1_isaacgym_example",
     w_last=True,  # IsaacGym uses xyzw quaternions
 )

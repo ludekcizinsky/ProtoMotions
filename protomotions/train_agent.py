@@ -76,9 +76,36 @@ def main(config: OmegaConf):
         seeding(config.seed + rank, torch_deterministic=config.torch_deterministic)
 
     if simulator == "isaaclab":
+ 
+
         app_launcher_flags = {
-            "headless": config.headless,
+            "headless": False, # keep false otherwise we get omni.ui failure
+            "kit_args": "--no-window --enable omni.kit.livestream.webrtc",
         }
+
+        # Adjust if your install lives elsewhere
+        #ISAAC_ROOT = Path("/workspace/isaaclab")
+        #STREAMING_EXP = ISAAC_ROOT / "_isaac_sim/apps/isaacsim.exp.full.streaming.kit"
+
+        #os.environ["LIVESTREAM"] = "1"
+        #os.environ["PUBLIC_IP"] = "44.198.163.132"
+
+        ## Optional: assert the file exists so you fail fast with a clear message
+        ##assert STREAMING_EXP.exists(), f"Missing experience: {STREAMING_EXP}"
+
+        #app_launcher_flags = {
+        #"headless": False,
+        ##"experience": str(STREAMING_EXP),
+        ##"kit_args": "--no-window --allow-root"
+        ##"kit_args": "--/app/livestream/publicEndpointAddress=44.198.163.132 "
+        ##            "--/app/livestream/port=49100 "
+        ##            "--no-window "
+        #"kit_args": (
+        #    "--enable omni.kit.livestream.webrtc "
+        #    "--/app/livestream/publicEndpointAddress=44.198.163.132 "
+        #    "--/app/livestream/port=49100 "
+        #    "--allow-root --no-window" 
+        #)}
         if fabric.world_size > 1:
             # This is needed when running with SLURM.
             # When launching multi-GPU/node jobs without SLURM, or differently, maybe this needs to be adapted accordingly.

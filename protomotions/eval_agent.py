@@ -80,7 +80,11 @@ def main(override_config: OmegaConf):
     fabric.launch()
 
     if simulator == "isaaclab":
-        app_launcher = AppLauncher({"headless": config.headless})
+        app_launcher_flags = {
+            "headless": False, # keep false otherwise we get omni.ui failure
+            "kit_args": "--no-window --enable omni.kit.livestream.webrtc",
+        }
+        app_launcher = AppLauncher(app_launcher_flags)
         simulation_app = app_launcher.app
         env = instantiate(
             config.env, device=fabric.device, simulation_app=simulation_app
@@ -88,12 +92,19 @@ def main(override_config: OmegaConf):
     else:
         env = instantiate(config.env, device=fabric.device)
 
+    if simulator == "isaaclab" and not config.headless:
+        env.simulator._toggle_video_record()  # optional: start recording here
+
     agent: PPO = instantiate(config.agent, env=env, fabric=fabric)
     agent.setup()
     agent.load(config.checkpoint)
 
     agent.evaluate_policy()
 
+    #if simulator == "isaaclab" and not config.headless:
+    #    env.simulator._toggle_video_record()  # stop
+    #    print("Recording stopping:", env.simulator._user_is_recording)
+    #    env.simulator.render() 
 
 if __name__ == "__main__":
     main()

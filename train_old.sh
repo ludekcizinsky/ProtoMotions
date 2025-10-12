@@ -6,13 +6,13 @@ PYTHON_BIN="${PYTHON_BIN:-/workspace/isaaclab/_isaac_sim/python.sh}"
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-/workspace/isaaclab/ProtoMotions/results}"
 
-MOTION_FILE="${MOTION_FILE:-/workspace/isaaclab/ProtoMotions/data/zurihack/data/motion_states/walking.pt}"
+MOTION_FILE="${MOTION_FILE:-/workspace/isaaclab/ProtoMotions/data/zurihack/data/motion_states/initial_demo.pt}"
 SIMULATOR="${SIMULATOR:-isaaclab}"
-ROBOT="${ROBOT:-h1}"
+ROBOT="${ROBOT:-smpl}"
 TERRAIN="${TERRAIN:-flat}"
 
 # Which to run: 1, 2, 3, both (1+2), or all (1+2+3)
-STAGE="${STAGE:-all}"
+STAGE="${STAGE:-2}"
 
 # Liftable box toggle (0/1, false/true)
 ENABLE_LIFTABLE_BOX="${ENABLE_LIFTABLE_BOX:-0}"
@@ -21,22 +21,14 @@ case "${ENABLE_LIFTABLE_BOX,,}" in
   *) ENABLE_LIFTABLE_BOX_OVERRIDE=false ;;
 esac
 
-# TODO RECORD_INITIAL_FRAMES="${RECORD_INITIAL_FRAMES:-0}"
-# TODO RAW_FRAME_CAPTURE="${RAW_FRAME_CAPTURE:-0}"
-# TODO case "${RAW_FRAME_CAPTURE,,}" in
-# TODO   1|true|yes|on) RAW_FRAME_CAPTURE_OVERRIDE=true ;;
-# TODO   *) RAW_FRAME_CAPTURE_OVERRIDE=false ;;
-# TODO esac
-
-
 # --- Stage 1 (Full-body tracker) ---
-TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-h1_walking_night_v2}"
+TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-initial_demo}"
 TRACKER_NUM_ENVS="${TRACKER_NUM_ENVS:-512}"
 TRACKER_NUM_STEPS="${TRACKER_NUM_STEPS:-32}"
 TRACKER_BATCH_SIZE="$((TRACKER_NUM_ENVS * TRACKER_NUM_STEPS))"
 
 # --- Stage 2 (MaskedMimic) ---
-EXPERIMENT_NAME="${EXPERIMENT_NAME:-h1_walking_night_mimic_v2}"
+EXPERIMENT_NAME="${EXPERIMENT_NAME:-inital_demo_mimic}"
 MM_NUM_ENVS="${MM_NUM_ENVS:-256}"
 MM_NUM_STEPS="${MM_NUM_STEPS:-32}"
 MM_BATCH_SIZE="$((MM_NUM_ENVS * MM_NUM_STEPS))"
@@ -119,7 +111,7 @@ print_stage_3() {
 
 run_stage_1() {
   print_stage_1
-  ENABLE_LIFTABLE_BOX="$ENABLE_LIFTABLE_BOX" HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/train_agent.py \
+  HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/train_agent.py \
     +exp=full_body_tracker/transformer_flat_terrain \
     +robot="$ROBOT" \
     +simulator="$SIMULATOR" \
@@ -130,16 +122,13 @@ run_stage_1() {
     num_envs="$TRACKER_NUM_ENVS" \
     agent.config.num_steps="$TRACKER_NUM_STEPS" \
     agent.config.batch_size="$TRACKER_BATCH_SIZE" \
-    agent.config.max_epochs="2000" \
-    env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
+    +env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
     "${WANDB_ARGS[@]}"
-    # TODO env.config.record_raw_frames_only="$RAW_FRAME_CAPTURE_OVERRIDE" \
-    # TODO +env.config.record_initial_frames="$RECORD_INITIAL_FRAMES" \
 }
 
 run_stage_2() {
   print_stage_2
-  ENABLE_LIFTABLE_BOX="$ENABLE_LIFTABLE_BOX" HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/train_agent.py \
+  HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/train_agent.py \
     +exp=masked_mimic/flat_terrain \
     +robot="$ROBOT" \
     +simulator="$SIMULATOR" \
@@ -151,21 +140,19 @@ run_stage_2() {
     num_envs="$MM_NUM_ENVS" \
     agent.config.num_steps="$MM_NUM_STEPS" \
     agent.config.batch_size="$MM_BATCH_SIZE" \
-    agent.config.max_epochs="500" \
-    env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
+    +env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
     "${WANDB_ARGS[@]}"
 }
 
 run_stage_3() {
   print_stage_3
-  ENABLE_LIFTABLE_BOX="$ENABLE_LIFTABLE_BOX" HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/eval_agent.py \
+  HYDRA_FULL_ERROR=1 "$PYTHON_BIN" protomotions/eval_agent.py \
     +robot="$ROBOT" \
     +simulator="$EVAL_SIMULATOR" \
     +checkpoint="$EVAL_CHECKPOINT" \
     +headless=False \
     +env.config.headless=False \
-    +agent.config.max_eval_steps=1000 \
-    +env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" 
+    +agent.config.max_eval_steps=1000 
     #+opt="$EVAL_OPT" \
 
   echo "Encoding evaluation videos from rendered frames (if any)..."
