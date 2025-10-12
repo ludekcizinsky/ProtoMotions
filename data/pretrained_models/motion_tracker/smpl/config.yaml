@@ -162,7 +162,7 @@ agent:
     task_reward_w: 1.0
     num_mini_epochs: 1
     max_eval_steps: null
-    eval_metrics_every: 200
+    eval_metrics_every: 100
     eval_metric_keys:
     - cartesian_err
     - gt_err

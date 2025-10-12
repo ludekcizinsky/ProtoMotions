@@ -130,7 +130,7 @@ run_stage_1() {
     num_envs="$TRACKER_NUM_ENVS" \
     agent.config.num_steps="$TRACKER_NUM_STEPS" \
     agent.config.batch_size="$TRACKER_BATCH_SIZE" \
-    agent.config.max_epochs="2000" \
+    agent.config.max_epochs="200000" \
     env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
     "${WANDB_ARGS[@]}"
     # TODO env.config.record_raw_frames_only="$RAW_FRAME_CAPTURE_OVERRIDE" \
@@ -151,7 +151,7 @@ run_stage_2() {
     num_envs="$MM_NUM_ENVS" \
     agent.config.num_steps="$MM_NUM_STEPS" \
     agent.config.batch_size="$MM_BATCH_SIZE" \
-    agent.config.max_epochs="500" \
+    agent.config.max_epochs="50000" \
     env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
     "${WANDB_ARGS[@]}"
 }
