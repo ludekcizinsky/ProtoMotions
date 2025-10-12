@@ -20,7 +20,7 @@ module load gcc git-lfs
 PYTHON_BIN=${PYTHON_BIN:-python}
 
 
-SEQUENCE_NAME="initial_demo"
+SEQUENCE_NAME="boxes"
 HUMAN3R_OUTPUT_DIR="/scratch/izar/cizinsky/zurihack/human3r/${SEQUENCE_NAME}"
 WORK_ROOT="/scratch/izar/cizinsky/zurihack/data/"
 
