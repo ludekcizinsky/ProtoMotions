@@ -6,7 +6,7 @@ PYTHON_BIN="${PYTHON_BIN:-/workspace/isaaclab/_isaac_sim/python.sh}"
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="${OUTPUT_DIR:-/workspace/isaaclab/ProtoMotions/results}"
 
-MOTION_FILE="${MOTION_FILE:-/workspace/isaaclab/ProtoMotions/data/zurihack/data/motion_states/initial_demo.pt}"
+MOTION_FILE="${MOTION_FILE:-/workspace/isaaclab/ProtoMotions/data/zurihack/data/motion_states/walking.pt}"
 SIMULATOR="${SIMULATOR:-isaaclab}"
 ROBOT="${ROBOT:-h1}"
 TERRAIN="${TERRAIN:-flat}"
@@ -30,13 +30,13 @@ esac
 
 
 # --- Stage 1 (Full-body tracker) ---
-TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-initial_demo_h1_night}"
+TRACKER_EXPERIMENT_NAME="${TRACKER_EXPERIMENT_NAME:-h1_walking_night_v2}"
 TRACKER_NUM_ENVS="${TRACKER_NUM_ENVS:-512}"
 TRACKER_NUM_STEPS="${TRACKER_NUM_STEPS:-32}"
 TRACKER_BATCH_SIZE="$((TRACKER_NUM_ENVS * TRACKER_NUM_STEPS))"
 
 # --- Stage 2 (MaskedMimic) ---
-EXPERIMENT_NAME="${EXPERIMENT_NAME:-inital_demo_h1_night_mimic}"
+EXPERIMENT_NAME="${EXPERIMENT_NAME:-h1_walking_night_mimic_v2}"
 MM_NUM_ENVS="${MM_NUM_ENVS:-256}"
 MM_NUM_STEPS="${MM_NUM_STEPS:-32}"
 MM_BATCH_SIZE="$((MM_NUM_ENVS * MM_NUM_STEPS))"
@@ -128,13 +128,13 @@ run_stage_1() {
     +experiment_name="$TRACKER_EXPERIMENT_NAME" \
     base_dir="$OUTPUT_DIR" \
     num_envs="$TRACKER_NUM_ENVS" \
-    training_max_steps="10" \
     agent.config.num_steps="$TRACKER_NUM_STEPS" \
     agent.config.batch_size="$TRACKER_BATCH_SIZE" \
+    agent.config.max_epochs="2000" \
     env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
-    # TODO +env.config.record_initial_frames="$RECORD_INITIAL_FRAMES" \
     "${WANDB_ARGS[@]}"
     # TODO env.config.record_raw_frames_only="$RAW_FRAME_CAPTURE_OVERRIDE" \
+    # TODO +env.config.record_initial_frames="$RECORD_INITIAL_FRAMES" \
 }
 
 run_stage_2() {
@@ -151,6 +151,7 @@ run_stage_2() {
     num_envs="$MM_NUM_ENVS" \
     agent.config.num_steps="$MM_NUM_STEPS" \
     agent.config.batch_size="$MM_BATCH_SIZE" \
+    agent.config.max_epochs="500" \
     env.config.enable_liftable_box="$ENABLE_LIFTABLE_BOX_OVERRIDE" \
     "${WANDB_ARGS[@]}"
 }
